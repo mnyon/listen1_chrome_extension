@@ -1,6 +1,12 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable global-require */
 /* global angular MediaService isElectron require */
+
+/* 非常有意思的一个部分,它直接的就相当于没有模块化,直接脚本执行的划分了一个单独的文件 
+  选定指定的module之后,选中特定的控制器
+  相当于一个巨大的回调
+
+*/
 angular.module('listenone').controller('AuthController', [
   '$scope',
   ($scope) => {
@@ -26,6 +32,9 @@ angular.module('listenone').controller('AuthController', [
       MediaService.logout(source);
     };
 
+    /* 
+      这里传递的source是neteast这类的
+    */
     $scope.is_login = (source) =>
       $scope.musicAuth[source] && $scope.musicAuth[source].is_login;
 

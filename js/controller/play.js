@@ -4,6 +4,15 @@
 /* eslint-disable global-require */
 /* global angular notyf i18next MediaService l1Player hotkeys GithubClient isElectron require getLocalStorageValue getPlayer getPlayerAsync addPlayerListener smoothScrollTo lastfm */
 
+/* 
+  这个文件应该是通过UI的Angular控制向Backend的真player进行控制.
+  也就是说一个player是控制UI的逻辑,它不解决真的音频问题
+  另一个则是纯纯的不带有UI的问题
+*/
+
+/* 
+  这段代码定义了一个名为getCSSStringFromSetting()的函数，它接受一个设置对象作为参数，并从中提取出背景透明度（backgroundAlpha）的值。如果该值为0，则会将其设置为0.01以避免完全透明的情况，因为这会导致鼠标离开事件无法正常触发。最后，该函数会返回一段CSS字符串，用于将背景色设置为指定的背景透明度、字体大小和颜色的值。
+*/
 function getCSSStringFromSetting(setting) {
   let { backgroundAlpha } = setting;
   if (backgroundAlpha === 0) {
@@ -29,6 +38,9 @@ function useModernTheme() {
   return defaultTheme === 'white2' || defaultTheme === 'black2';
 }
 
+/* 
+  getSafeIndex函数以索引和长度作为参数。它用于保护您从数组或字符串中访问的索引，以防溢出。如果索引小于0，程序将使用模除法（index % length）计算出新的索引，如果索引大于长度减1，它同样会使用模除法计算出新的索引。如果索引在允许的范围内，它将返回原始的索引。
+*/
 function getSafeIndex(index, length) {
   if (index < 0) {
     const r = index % length;
@@ -101,6 +113,9 @@ angular.module('listenone').controller('PlayController', [
       $scope.isMac = process.platform === 'darwin';
     }
 
+    /* 
+      切换播放器的状态
+    */
     function switchMode(mode) {
       // playmode 0:loop 1:shuffle 2:repeat one
       switch (mode) {
@@ -215,6 +230,9 @@ angular.module('listenone').controller('PlayController', [
       ipcRenderer.send('control', message);
     };
 
+    /* 
+      这段代码的功能是，当用户点击控制按钮时，根据用户设置来启用/禁用歌词浮动窗口。它会使用现有的用户设置来确定窗口的外观，并将这些设置存储在本地。然后，它会使用Electron框架来发送一个“控制”消息，以便在用户的本地计算机上启用/禁用浮动窗口。
+     */
     $scope.openLyricFloatingWindow = (toggle) => {
       if (!isElectron()) {
         return;
@@ -228,6 +246,9 @@ angular.module('listenone').controller('PlayController', [
       } else {
         message = 'disable_lyric_floating_window';
       }
+      /* 
+        似乎是利用了LocalStorage来进行全局状态管理
+      */
       localStorage.setObject(
         'enable_lyric_floating_window',
         $scope.enableLyricFloatingWindow
@@ -239,7 +260,9 @@ angular.module('listenone').controller('PlayController', [
         getCSSStringFromSetting($scope.floatWindowSetting)
       );
     };
-
+    /* 
+        这段代码的含义是，如果运行在Electron框架中，会设置一些操作项，例如设置缩放级别、打开/关闭浮动窗口、调整窗口字体大小、调整背影透明度以及更改文字颜色。另外，它还会将更改的设置存入本地存储，并向Electron进程发送更新lyric floating window css的消息。
+    */
     if (isElectron()) {
       const { webFrame, ipcRenderer } = require('electron');
       // webFrame.setVisualZoomLevelLimits(1, 3);
@@ -308,6 +331,9 @@ angular.module('listenone').controller('PlayController', [
       });
     }
 
+    /* 
+      保存播放器的设置
+    */
     $scope.saveLocalSettings = () => {
       localStorage.setObject('player-settings', $scope.settings);
     };
@@ -344,6 +370,9 @@ angular.module('listenone').controller('PlayController', [
       }
     };
 
+    /* 
+      点击静音按钮
+    */
     $scope.toggleMuteStatus = () => {
       // mute function is indeed toggle mute status.
       l1Player.toggleMute();
@@ -491,6 +520,9 @@ angular.module('listenone').controller('PlayController', [
       }
     }
 
+    /* 
+      这里传递了一个匿名函数
+    */
     addPlayerListener(mode, (msg, sender, sendResponse) => {
       if (
         typeof msg.type === 'string' &&

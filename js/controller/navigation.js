@@ -86,6 +86,9 @@ angular.module('listenone').controller('NavigationController', [
       $scope.window_poped_url_stack = [];
     };
 
+    /* 
+      非常神奇的一个部分,似乎意味着从歌词页返回的时候就会触发这个
+    */
     function refreshWindow(url, offset = 0) {
       if (url === '/now_playing') {
         $scope.window_type = 'track';
@@ -105,10 +108,15 @@ angular.module('listenone').controller('NavigationController', [
         }, 0);
       });
     }
+    /* 
+      这也是一个Event,它意味着页面的跳转,本身是无副作用的,它的状态控制在外部.
+    */
     $scope.popWindow = () => {
+      // 当前没有路由指向
       if ($scope.window_url_stack.length === 0) {
         return;
       }
+      // 得到当前正确的路由指向
       let poped = $scope.window_url_stack.pop();
       if ($scope.getCurrentUrl() === '/now_playing') {
         poped = $scope.window_url_stack.pop();
@@ -122,12 +130,16 @@ angular.module('listenone').controller('NavigationController', [
         refreshWindow(lastWindow.url, poped.offset);
       }
     };
-
+    /* 
+      这应该是一个Event 当点击当前的播放时就会触发这个具体就是那个Cover
+    */
     $scope.toggleNowPlaying = () => {
+      // 某种路由关系,这种路由关系确定的关系是 now_playing正在播放的部分
       if ($scope.getCurrentUrl() === '/now_playing') {
         $scope.popWindow();
         return;
       }
+      // 
       if (!$scope.menuHidden) {
         $scope.togglePlaylist();
       }
@@ -161,6 +173,9 @@ angular.module('listenone').controller('NavigationController', [
     $scope.getCurrentUrl = () =>
       ($scope.window_url_stack.slice(-1)[0] || {}).url;
 
+    /* 
+      显示当前的播放列表
+    */
     $scope.showPlaylist = (list_id, useCache) => {
       $scope.clearFilter();
       const url = `/playlist?list_id=${list_id}`;
@@ -322,6 +337,10 @@ angular.module('listenone').controller('NavigationController', [
     $scope.clearFilter = () => {
       $scope.playlistFilter.key = '';
     };
+
+    /* 
+    
+    */
     $scope.fieldFilter = (song) => {
       if ($scope.playlistFilter.key === '') {
         return true;
@@ -503,6 +522,10 @@ angular.module('listenone').controller('NavigationController', [
       link.remove();
     };
 
+    /* 
+      记录保存导出
+      这段代码用于备份应用程序的设置。它通过获取当前本地存储中的所有键，并将其相应值作为键值对存储到另一个对象中，然后将该对象转换为JSON字符串，并使用下载文件函数将其保存到文件中，文件名为listen1_backup.json。
+    */
     $scope.backupMySettings = () => {
       const items = {};
       Object.keys(localStorage).forEach((key) => {
@@ -513,6 +536,9 @@ angular.module('listenone').controller('NavigationController', [
       $scope.downloadFile('listen1_backup.json', 'application/json', content);
     };
 
+    /* 
+      导入备份文件
+    */
     $scope.importMySettings = (event) => {
       const fileObject = event.target.files[0];
       if (fileObject === null) {

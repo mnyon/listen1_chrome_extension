@@ -37,6 +37,11 @@ angular.module('listenone').controller('ProfileController', [
       $scope.proxyModeInput = newMode;
     };
 
+    /* 
+      这段代码的功能是设置代理配置。
+      它首先获取代理模式，然后从文档中获取主机和端口，然后将它们设置为代理规则。
+      如果代理模式是系统或直接，则发送一条消息以更新代理配置，否则发送另一条消息，使用代理规则更新代理配置。
+    */
     $scope.setProxyConfig = () => {
       const mode = $scope.proxyModeInput.name;
       $scope.proxyMode = $scope.proxyModeInput;

@@ -62,6 +62,9 @@ class kugou {
     const keyword = getParameterByName('keywords', url);
     const curpage = getParameterByName('curpage', url);
     const searchType = getParameterByName('type', url);
+    /* 
+      
+    */
     if (searchType === '1') {
       return {
         success: (fn) => {

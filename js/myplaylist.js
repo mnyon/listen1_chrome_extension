@@ -49,12 +49,19 @@ const myplaylistFactory = () => {
     };
   }
 
+  /* 
+    获得自己的播放列表
+  */
   function get_myplaylist(url) {
     const list_id = getParameterByName('list_id', url);
     return {
+      /* 
+        fn很有可能是一个callback,这里的success就是一个函数名称
+      */
       success(fn) {
         const playlist = localStorage.getObject(list_id);
         // clear url field when load old playlist
+        // 获得所有的歌曲内容
         if (playlist !== null && playlist.tracks !== undefined) {
           playlist.tracks.forEach((e) => {
             delete e.url;

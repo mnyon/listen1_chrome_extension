@@ -46,6 +46,11 @@ angular.module('listenone').controller('InstantSearchController', [
       }
     }
 
+    /* 
+    
+    这段代码实现了一个搜索功能。它会使用提供的关键字对MediaService的搜索进行调用，并且使用提供的参数，比如页码和搜索类型进行搜索。在获得结果后，它会更新文本框，更新分页信息，并且更新搜索结果，最后，它会滚动到页面顶部。
+    
+    */
     function performSearch() {
       $rootScope.$broadcast('search:keyword_change', $scope.keywords);
       MediaService.search($scope.tab, {

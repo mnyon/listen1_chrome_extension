@@ -1,5 +1,9 @@
 /* eslint-disable no-unused-vars */
 /* global GithubClient */
+
+/* 
+  点击插件的图标之后的行为
+*/
 chrome.browserAction.onClicked.addListener((tab) => {
   chrome.tabs.create(
     {
@@ -108,6 +112,9 @@ function hack_referer_header(details) {
     add_origin = false;
     add_referer = false;
   }
+  /* 
+    似乎需要添加新的来源的url
+  */
 
   if (origin_value === '') {
     origin_value = referer_value;

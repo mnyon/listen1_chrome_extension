@@ -28,6 +28,11 @@
    *
    * See https://www.last.fm/api/authspec#8
    */
+
+  /* 
+    generateSign函数是用来生成签名的函数。
+    它接受一个参数params，然后通过Object.keys()过滤掉format和callback参数，然后将剩下的参数按照字母表顺序排列，接着将排序后的参数以字符串形式连接起来，最后附加上API秘钥计算MD5值，最终返回生成的签名。
+  */
   const generateSign = (params) => {
     const keys = Object.keys(params).filter(
       (key) => key !== 'format' || key !== 'callback'

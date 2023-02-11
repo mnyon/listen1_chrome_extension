@@ -6,9 +6,13 @@
    * Player class containing the state of our playlist and where we are in it.
    * Includes all methods for playing, skipping, updating the display, etc.
    * @param {Array} playlist Array of objects with playlist song details ({title, file, howl}).
+   * 所以说Provider提供的可能不是mp3等等具体的细节,但是到了Player这里一定是了
    */
   class Player {
     constructor() {
+      /* 
+        当前的播放列表,实际上其中的每个item都是真实的trackAPI类似的返回结果
+      */
       this.playlist = [];
       this._random_playlist = [];
       this.index = -1;
@@ -49,6 +53,9 @@
       return !!Howler._muted;
     }
 
+    /* 
+      这段代码简单来说就是向播放列表中插入新的音频文件。它检查播放列表中是否有音频文件的ID，如果没有就创建一个新的audioData对象，将其中的属性设置为false， howl设置为null。如果有idx参数，则将音频文件插入idx位置，否则直接追加到播放列表中。然后发送播放列表和加载事件。
+    */
     insertAudio(audio, idx) {
       if (this.playlist.find((i) => audio.id === i.id)) return;
 
@@ -147,8 +154,15 @@
       });
     }
 
+    /* 
+      清空播放列表
+    */
     clearPlaylist() {
+      /* 
+        停止播放的音乐?
+      */
       this.stopAll(); // stop the loadded track before remove list
+      // 清空播放列表
       this.playlist = [];
       Howler.unload();
       this.sendPlaylistEvent();
@@ -206,10 +220,17 @@
       }
     }
 
+    /* 
+
+    */
     retrieveMediaUrl(index, playNow) {
+
       const msg = {
         type: 'BG_PLAYER:RETRIEVE_URL',
         data: {
+          /* 
+            这里的playlist已经存放了最基本的track基本信息了
+          */
           ...this.playlist[index],
           howl: undefined,
           index,
@@ -220,6 +241,10 @@
       MediaService.bootstrapTrack(
         msg.data,
         (bootinfo) => {
+          /* 
+            bootinfo就是目标track的mp3地址
+            msg.data实际上是这首track的完全信息,相当于一个完整的API
+          */
           msg.type = 'BG_PLAYER:RETRIEVE_URL_SUCCESS';
 
           msg.data = { ...msg.data, ...bootinfo };
@@ -263,12 +288,26 @@
       this.sendLoadEvent();
     }
 
+    /* 
+      播放音频的 Javascript 函数，用于在 HTML5 环境中播放音频。
+      它定义了一个名为 finishLoad 的函数，该函数接收两个参数，index 和 playNow。
+      它使用 index 参数获取播放列表中的音频，并检查是否已加载，如果尚未加载，则可以使用 Howl 来加载音频。
+      
+      它还定义了一些播放、暂停、结束等事件的监听器，以及使用 MediaSession API 向浏览器发送当前播放的音频的元数据。
+      如果无法加载音频，则会发送错误信息。
+    */
     finishLoad(index, playNow) {
+      /* 
+        针对某个track进行对象的设定
+      */
       const data = this.playlist[index];
 
       // If we already loaded this track, use the current one.
       // Otherwise, setup and load a new Howl.
       const self = this;
+      /* 
+        初始化这个howl
+      */
       if (!data.howl) {
         data.howl = new Howl({
           src: [self._media_uri_list[data.url || data.id]],
@@ -297,6 +336,9 @@
             self.playedFrom = Date.now();
             self.sendPlayingEvent('Playing');
           },
+          /* 
+            这里应该是每一首歌都是一个huwl对象,这个对象一旦发生改变也要通知UI player改变
+          */
           onload() {
             self.currentAudio.disabled = false;
             self.sendPlayingEvent('Loaded');
@@ -325,8 +367,8 @@
           onstop() {
             self.sendPlayingEvent('Stopped');
           },
-          onseek() {},
-          onvolume() {},
+          onseek() { },
+          onvolume() { },
           onloaderror(id, err) {
             playerSendMessage(this.mode, {
               type: 'BG_PLAYER:PLAY_FAILED',
@@ -466,6 +508,9 @@
     set volume(val) {
       // Update the global volume (affecting all Howls).
       if (typeof val === 'number') {
+        /* 
+          相当于调节整个播放器的音量
+        */
         Howler.volume(val);
         this.sendVolumeEvent();
         this.sendFrameUpdate();
@@ -486,6 +531,9 @@
     }
 
     mute() {
+      /* 
+        静音
+      */
       Howler.mute(true);
       playerSendMessage(this.mode, {
         type: 'BG_PLAYER:MUTE',
@@ -573,6 +621,9 @@
       });
     }
 
+    /* 
+      
+    */
     async sendPlayingEvent(reason = 'UNKNOWN') {
       playerSendMessage(this.mode, {
         type: 'BG_PLAYER:PLAY_STATE',
@@ -587,13 +638,13 @@
       playerSendMessage(this.mode, {
         type: 'BG_PLAYER:LOAD',
         data: {
-          currentPlaying:{
+          currentPlaying: {
             ...this.currentAudio,
             howl: undefined,
           },
-          playlist:{
-            index:this.index,
-            length:this.playlist.length
+          playlist: {
+            index: this.index,
+            length: this.playlist.length
           }
         },
       });
@@ -618,8 +669,16 @@
 
   const threadPlayer = new Player();
   threadPlayer.setRefreshRate();
+  /* 
+    真正意义上在全局构造一个Audio播放器控制
+  */
   window.threadPlayer = threadPlayer;
 
+  /* 
+    这段代码使用 mediaSession API 来设置媒体通知图标的操作处理程序。
+    例如，当用户点击播放通知图标时，它会触发 threadPlayer.play()，即播放音频。
+    其他操作处理程序也是如此，它们会在用户点击对应的通知图标时触发一些 threadPlayer 函数（例如，点击暂停通知图标时会触发 threadPlayer.pause()）。
+  */
   if ('mediaSession' in navigator) {
     const { mediaSession } = navigator;
     mediaSession.setActionHandler('play', () => {
@@ -661,6 +720,7 @@
       threadPlayer.sendFrameUpdate();
     });
   }
+  
   playerSendMessage(this.mode, {
     type: 'BG_PLAYER:READY',
   });

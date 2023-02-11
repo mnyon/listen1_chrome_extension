@@ -7,6 +7,9 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable import/no-unresolved */
 
+/* 
+  注册所有的听音乐的来源
+*/
 const sourceList = [
   {
     name: 'netease',
@@ -36,11 +39,21 @@ const sourceList = [
     name: 'taihe',
     displayId: '_TAIHE_MUSIC',
   },
+  {
+    name:'criezfm',
+    displayId:'_EASY_FM'
+  }
 ];
 
+/* 
+  整个就是一个箭头函数
+*/
 const main = () => {
+  /*  */
   const app = angular.module('listenone', []);
+  // 存储机制初始化
   setPrototypeOfLocalStorage();
+  // angular的配置过程
   app.config([
     '$compileProvider',
     ($compileProvider) => {
@@ -49,7 +62,7 @@ const main = () => {
       );
     },
   ]);
-
+  // 应用启动
   app.run([
     '$q',
     ($q) => {
@@ -107,6 +120,8 @@ const main = () => {
     },
   ]);
 
+  // 非常有意思,播放器似乎获取了对UI的控制部分
+  // 这个l1Player是直接在windows上注册了的
   l1Player.injectDirectives(app);
 
   app.filter('playmode_title', () => (input) => {
@@ -133,6 +148,7 @@ const main = () => {
     return ret;
   });
 
+  // 把一个类标记为 Angular 指令。你可以定义自己的指令来为 DOM 中的元素添加自定义行为。
   app.directive('volumeWheel', () => (scope, element, attrs) => {
     element.bind('mousewheel', () => {
       l1Player.adjustVolume(window.event.wheelDelta > 0);
@@ -176,6 +192,9 @@ const main = () => {
     changeHeight(); // when page loads
   });
 
+  /* 
+    非常神奇的一个部分,这列似乎是在手动的让app渲染一些指定的内容
+  */
   app.directive('addAndPlay', [
     () => ({
       restrict: 'EA',
@@ -494,6 +513,9 @@ const main = () => {
   ]);
 };
 
+/* 
+  国际化的初始化工作
+*/
 i18next.use(i18nextHttpBackend).init({
   lng: 'zh-CN',
   fallbackLng: 'zh-CN',
@@ -505,4 +527,7 @@ i18next.use(i18nextHttpBackend).init({
   },
 });
 
+/* 
+  整个应用的启动是从这个app函数手动开启的
+*/
 main();

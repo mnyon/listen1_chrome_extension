@@ -532,6 +532,7 @@ class netease {
     };
   }
 
+  /* 对特定的Music获取其歌词部分 */
   static lyric(url) {
     const track_id = getParameterByName('track_id', url).split('_').pop();
     // use chrome extension to modify referer.

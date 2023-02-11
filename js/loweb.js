@@ -2,6 +2,9 @@
 /* global netease xiami qq kugou kuwo bilibili migu taihe localmusic myplaylist */
 
 const PROVIDERS = [
+  /* 
+    此处的instance不是一个什么Object,可能就是一个Class
+  */
   {
     name: 'netease',
     instance: netease,
@@ -59,6 +62,15 @@ const PROVIDERS = [
     support_login: false,
     id: 'th',
   },
+
+/*   {
+    name: 'easyfm',
+    instance: easyfm,
+    searchable: true,
+    support_login: false,
+    id: 'easyf',
+  }, */
+
   {
     name: 'localmusic',
     instance: localmusic,
@@ -77,7 +89,16 @@ const PROVIDERS = [
   },
 ];
 
+/* 
+  提供一些公共方法,直接暴露出来.
+*/
+
+/* 
+  传递一个字符串,返回一个对应Object
+  直接从名字取一个Provider
+*/
 function getProviderByName(sourceName) {
+  /* 这里实际上使用的都是Class的静态方法,也就是说这些Provider完全没有实例化的意思,约定每个Class都提供标准接口. */
   return (PROVIDERS.find((i) => i.name === sourceName) || {}).instance;
 }
 
@@ -85,17 +106,32 @@ function getAllProviders() {
   return PROVIDERS.filter((i) => !i.hidden).map((i) => i.instance);
 }
 
+/* 
+  提供了搜索的接口的那些Provider
+*/
 function getAllSearchProviders() {
   return PROVIDERS.filter((i) => i.searchable).map((i) => i.instance);
 }
 
+/* 
+
+*/
 function getProviderNameByItemId(itemId) {
   const prefix = itemId.slice(0, 2);
   return (PROVIDERS.find((i) => i.id === prefix) || {}).name;
 }
 
+/* 
+  对每个JSON的歌单的Item进行分析
+*/
 function getProviderByItemId(itemId) {
+  /* 
+    似乎歌单是自己的歌单的话就会返回my
+  */
   const prefix = itemId.slice(0, 2);
+  /* 
+    看看这个歌单是不是几个平台的情况
+  */
   return (PROVIDERS.find((i) => i.id === prefix) || {}).instance;
 }
 
@@ -105,6 +141,9 @@ const playlistCache = new LRUCache({
   maxAge: 60 * 60 * 1000, // 1 hour cache expire
 });
 
+/* 
+  将搜索框的内容格式化
+*/
 function queryStringify(options) {
   const query = JSON.parse(JSON.stringify(options));
   return new URLSearchParams(query).toString();
@@ -112,11 +151,16 @@ function queryStringify(options) {
 
 setPrototypeOfLocalStorage();
 
+/* 暴露出来的封装对象,对外就是使用MediaService */
+
 // eslint-disable-next-line no-unused-vars
 const MediaService = {
   getLoginProviders() {
     return PROVIDERS.filter((i) => !i.hidden && i.support_login);
   },
+  /* 
+    搜索服务配合搜索的内容进行搜索请求的准备
+  */
   search(source, options) {
     const url = `/search?${queryStringify(options)}`;
     if (source === 'allmusic') {
@@ -150,6 +194,9 @@ const MediaService = {
       };
     }
     const provider = getProviderByName(source);
+    /* 
+      一个provider必须提供搜索功能,但是fm电台是没有搜索的.
+    */
     return provider.search(url);
   },
 
@@ -168,6 +215,9 @@ const MediaService = {
     return provider.get_playlist_filters();
   },
 
+  /* 
+    获取歌词,依赖Provider提供的获取歌词方法
+  */
   getLyric(track_id, album_id, lyric_url, tlyric_url) {
     const provider = getProviderByItemId(track_id);
     const url = `/lyric?${queryStringify({
@@ -190,10 +240,21 @@ const MediaService = {
     };
   },
 
+  /* 
+    当点击一个列表的时候获取歌单的内容
+    listID应该就是在JSON中保存的每个歌单的ID
+  */
   getPlaylist(listId, useCache = true) {
+    
     const provider = getProviderByItemId(listId);
     const url = `/playlist?list_id=${listId}`;
+    /* 
+      似乎是命中本地缓存的意思
+    */
     let hit = null;
+    /* 
+      什么东西的缓存?
+    */
     if (useCache) {
       hit = playlistCache.get(listId);
     }
@@ -227,6 +288,9 @@ const MediaService = {
     };
   },
 
+  /* 
+    删除自己的歌单
+  */
   removeMyPlaylist(id, type) {
     myplaylist.remove_myplaylist(type, id);
     return {
@@ -234,6 +298,9 @@ const MediaService = {
     };
   },
 
+  /* 
+    增加自己的歌单
+  */
   addMyPlaylist(id, track) {
     const newPlaylist = myplaylist.add_track_to_myplaylist(id, track);
     return {
@@ -251,6 +318,9 @@ const MediaService = {
       success: (fn) => fn(newPlaylist),
     };
   },
+  /* 
+    是添加这个歌曲到歌单吗?
+  */
   addPlaylist(id, tracks) {
     const provider = getProviderByItemId(id);
     return provider.add_playlist(id, tracks);
@@ -322,6 +392,12 @@ const MediaService = {
     };
   },
 
+  /* 
+    这段代码用于合并两个播放列表（source和target）。
+    它首先从存储中获取target播放列表的数据，然后检查source播放列表中是否有相同的曲目，如果没有，它将添加到source播放列表中。最后，它将返回一个成功函数，以确保曲目添加成功。
+
+    这的localStorage就是最终的JSONfile的内容
+  */
   mergePlaylist(source, target) {
     const tarData = localStorage.getObject(target).tracks;
     const srcData = localStorage.getObject(source).tracks;
@@ -335,6 +411,10 @@ const MediaService = {
     };
   },
 
+  /* 
+    不知道为什么开始播放之后就会触发这个
+    MediaService.bootstrapTrack 挂载情况
+  */
   bootstrapTrack(track, playerSuccessCallback, playerFailCallback) {
     const successCallback = playerSuccessCallback;
     const sound = {};
@@ -422,12 +502,14 @@ const MediaService = {
 
     return provider.get_user_created_playlist(url);
   },
+
   getUserFavoritePlaylist(source, options) {
     const provider = getProviderByName(source);
     const url = `/get_user_favorite_playlist?${queryStringify(options)}`;
 
     return provider.get_user_favorite_playlist(url);
   },
+  
   getRecommendPlaylist(source) {
     const provider = getProviderByName(source);
 
