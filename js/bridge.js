@@ -1,12 +1,10 @@
 /* eslint-disable no-unused-vars */
+
 /*
-build a bridge between UI and audio player
-
-audio player has 2 modes, but share same protocol: front and background.
-
-* front: audio player and UI are in same environment
-* background: audio player is in background page.
-
+  build a bridge between UI and audio player
+  audio player has 2 modes, but share same protocol: front and background.
+  * front: audio player and UI are in same environment
+  * background: audio player is in background page.
 */
 
 /* 
@@ -33,6 +31,9 @@ function getBackgroundPlayerAsync(callback) {
   });
 }
 
+/* 
+  获取播放器的实例
+*/
 function getPlayer(mode) {
   if (mode === 'front') {
     return getFrontPlayer();
@@ -45,10 +46,9 @@ function getPlayer(mode) {
 
 /* 
   这个函数接受两个参数：一个模式和一个回调函数。 
-
   如果模式是“前”，它将调用'getFrontPlayer'函数，然后使用返回的玩家对象作为参数调用回调函数。
-
-  如果模式是“背景”，它将调用'getBackgroundPlayerAsync'，它接受一个回调函数参数，当异步调用完成时将被调用，并使用异步调用的结果作为参数调用回调函数。
+  如果模式是“背景”，它将调用'getBackgroundPlayerAsync'
+  它接受一个回调函数参数，当异步调用完成时将被调用，并使用异步调用的结果作为参数调用回调函数。
 */
 function getPlayerAsync(mode, callback) {
   if (mode === 'front') {
@@ -67,12 +67,15 @@ function getPlayerAsync(mode, callback) {
 const frontPlayerListener = [];
 
 /* 
-
+  TODO listener的参数
 */
 function addFrontPlayerListener(listener) {
   frontPlayerListener.push(listener);
 }
 
+/* 
+  TODO 检查这个参数 
+*/
 function addBackgroundPlayerListener(listener) {
   return (chrome || browser).runtime.onMessage.addListener(
     (msg, sender, res) => {
@@ -114,6 +117,9 @@ function frontPlayerSendMessage(message) {
   }
 }
 
+/* 
+  TODO 针对Background的信息的message内容
+*/
 function backgroundPlayerSendMessage(message) {
   (chrome || browser).runtime.sendMessage(message);
 }

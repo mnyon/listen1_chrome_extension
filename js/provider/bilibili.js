@@ -2,12 +2,38 @@
 // eslint-disable-next-line no-unused-vars
 /* global cookieSet cookieGet */
 // eslint-disable-next-line no-unused-vars
+
+
+
 class bilibili {
+
+  /**
+   * 将 HTML 字符串解码为正常字符串
+   *
+   * @static
+   * @param {*} value
+   * @return {*} 
+   * @memberof bilibili
+   */
   static htmlDecode(value) {
     const parser = new DOMParser();
     return parser.parseFromString(value, 'text/html').body.textContent;
   }
 
+
+  /**
+   * 将API得到数据进行解析,得到纯净的歌曲信息和资源
+   *
+   * @static
+   * @param {object} - song_info
+   * @param {string} - object.title 歌曲名称
+   * @param {string} - object.uname 演唱者名称
+   * @param {string} - object.id 歌曲的唯一表示ID
+   * @oaram {string} - object.uid 歌曲演唱者的id
+   * @param {string} - object.cover歌曲封面地址
+   * @return {object} - 返回自定义的歌曲信息 
+   * @memberof bilibili
+   */
   static bi_convert_song(song_info) {
     const track = {
       id: `bitrack_${song_info.id}`,
@@ -40,11 +66,21 @@ class bilibili {
     return track;
   }
 
+  /**
+   *
+   *
+   * @static
+   * @param {string} 播放列表的url
+   * @return {object} 
+   * @memberof bilibili
+   */
   static show_playlist(url) {
+    // 
     let offset = getParameterByName('offset', url);
     if (offset === undefined) {
       offset = 0;
     }
+    // 
     const page = offset / 20 + 1;
     const target_url = `https://www.bilibili.com/audio/music-service-c/web/menu/hit?ps=20&pn=${page}`;
     return {
@@ -65,19 +101,31 @@ class bilibili {
     };
   }
 
+  /**
+   *
+   *
+   * @static
+   * @param {string} url
+   * @return {object} 
+   * @property {function} object.success callback function(object,object) 请求回调
+   * @memberof bilibili
+   */
   static bi_get_playlist(url) {
     const list_id = getParameterByName('list_id', url).split('_').pop();
     const target_url = `https://www.bilibili.com/audio/music-service-c/web/menu/info?sid=${list_id}`;
     return {
       success: (fn) => {
         axios.get(target_url).then((response) => {
+          // 结构语法,只获取data部分
           const { data } = response.data;
+          // 返回专辑信息
           const info = {
             cover_img_url: data.cover,
             title: data.title,
             id: `biplaylist_${list_id}`,
             source_url: `https://www.bilibili.com/audio/am${list_id}`,
           };
+          // 获取所有的专辑歌曲资源信息
           const target = `https://www.bilibili.com/audio/music-service-c/web/song/of-menu?pn=1&ps=100&sid=${list_id}`;
           axios.get(target).then((res) => {
             const tracks = res.data.data.data.map((item) =>
@@ -131,7 +179,7 @@ class bilibili {
           const author = response.data.data.owner;
           const default_img = response.data.data.pic;
           const tracks = response.data.data.pages.map((item) =>
-            this.bi_convert_song3(item,track_id,author,default_img)
+            this.bi_convert_song3(item, track_id, author, default_img)
           );
           return fn({
             tracks,
@@ -142,9 +190,20 @@ class bilibili {
     };
   }
 
-  static bi_convert_song3(song_info,bvid,author,default_img) {
+  /**
+   *
+   *
+   * @static
+   * @param {*} song_info
+   * @param {*} bvid
+   * @param {*} author
+   * @param {*} default_img
+   * @return {*} 
+   * @memberof bilibili
+   */
+  static bi_convert_song3(song_info, bvid, author, default_img) {
     let imgUrl = song_info.first_frame;
-    if (imgUrl === undefined){
+    if (imgUrl === undefined) {
       imgUrl = default_img;
     } else if (imgUrl.startsWith('//')) {
       imgUrl = `https:${imgUrl}`;
@@ -225,14 +284,14 @@ class bilibili {
       let bvid = track.id.slice('bitrack_v_'.length);
 
       const trackIdCheck = trackId.split('-');
-      if(trackIdCheck.length > 1){
+      if (trackIdCheck.length > 1) {
         bvid = trackIdCheck[0].slice('bitrack_v_'.length);
       }
       const target_url = `https://api.bilibili.com/x/web-interface/view?bvid=${bvid}`;
       return axios.get(target_url).then((response) => {
         let { cid } = response.data.data.pages[0];
-        if(trackIdCheck.length > 1){
-          [,cid] = trackIdCheck;
+        if (trackIdCheck.length > 1) {
+          [, cid] = trackIdCheck;
         }
         const target_url2 = `http://api.bilibili.com/x/player/playurl?fnval=16&bvid=${bvid}&cid=${cid}`;
         axios.get(target_url2).then((response2) => {
@@ -263,9 +322,18 @@ class bilibili {
     });
   }
 
+  /**
+   * 搜索功能
+   *
+   * @static
+   * @param {string} url
+   * @return {object} 
+   * @memberof bilibili
+   */
   static search(url) {
     return {
       success: (fn) => {
+        // 从url中分离出来参数
         const keyword = getParameterByName('keywords', url);
         const curpage = getParameterByName('curpage', url);
 
@@ -277,6 +345,7 @@ class bilibili {
         const cookieName = 'buvid3';
         const expire =
           (new Date().getTime() + 1e3 * 60 * 60 * 24 * 365 * 100) / 1000;
+          // 这个一个全局函数 CookieGet(object,function)
         cookieGet(
           {
             url: domain,
@@ -297,6 +366,7 @@ class bilibili {
                       this.bi_convert_song2(song)
                     );
                     const total = response.data.data.numResults;
+                    // 
                     return fn({
                       result,
                       total,
@@ -310,6 +380,7 @@ class bilibili {
                   this.bi_convert_song2(song)
                 );
                 const total = response.data.data.numResults;
+                // 
                 return fn({
                   result,
                   total,
@@ -364,7 +435,7 @@ class bilibili {
     return `https://www.bilibili.com`;
   }
 
-  static logout() {}
+  static logout() { }
 
   // return {
   //   show_playlist: bi_show_playlist,

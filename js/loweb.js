@@ -158,14 +158,23 @@ const MediaService = {
   getLoginProviders() {
     return PROVIDERS.filter((i) => !i.hidden && i.support_login);
   },
-  /* 
-    搜索服务配合搜索的内容进行搜索请求的准备
-  */
+
+  /**
+   * 搜索服务配合搜索的内容进行搜索请求的准备,这里的搜索是针对UIplayer的
+   *
+   * @param {string} 目标平台的API source
+   * @param {string} 搜索的内容 options
+   * @return {object}  
+   */
   search(source, options) {
+    // 格式化搜索的内容
     const url = `/search?${queryStringify(options)}`;
+    // 从所有的源中获取搜索信息
     if (source === 'allmusic') {
       // search all platform and merge result
+      // 获取每个Provider的搜索结果 这种连续的箭头函数是特殊的函数式编程 柯里化
       const callbackArray = getAllSearchProviders().map((p) => (fn) => {
+        // 匿名函数Callback参数中传递进去另一个匿名函数
         p.search(url).success((r) => {
           fn(null, r);
         });
@@ -179,9 +188,11 @@ const MediaService = {
               total: 1000,
               type: platformResultArray[0].type,
             };
+            // 
             const maxLength = Math.max(
               ...platformResultArray.map((elem) => elem.result.length)
             );
+            // 
             for (let i = 0; i < maxLength; i += 1) {
               platformResultArray.forEach((elem) => {
                 if (i < elem.result.length) {
@@ -189,13 +200,17 @@ const MediaService = {
                 }
               });
             }
+            // 
             return fn(result);
           }),
       };
     }
+
+    // 只从特定的源中获取信息
     const provider = getProviderByName(source);
     /* 
       一个provider必须提供搜索功能,但是fm电台是没有搜索的.
+      返回的结果是执行这个函数之后返回了一个Object
     */
     return provider.search(url);
   },
