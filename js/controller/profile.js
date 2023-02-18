@@ -6,8 +6,10 @@
 angular.module('listenone').controller('ProfileController', [
   '$scope',
   ($scope) => {
+    // 默认语言
     let defaultLang = 'zh-CN';
     const supportLangs = ['zh-CN', 'en-US'];
+    
     if (supportLangs.indexOf(navigator.language) !== -1) {
       defaultLang = navigator.language;
     }
@@ -38,7 +40,7 @@ angular.module('listenone').controller('ProfileController', [
     };
 
     /* 
-      这段代码的功能是设置代理配置。
+      设置代理配置。
       它首先获取代理模式，然后从文档中获取主机和端口，然后将它们设置为代理规则。
       如果代理模式是系统或直接，则发送一条消息以更新代理配置，否则发送另一条消息，使用代理规则更新代理配置。
     */
@@ -70,6 +72,9 @@ angular.module('listenone').controller('ProfileController', [
       }
     };
 
+    /* 
+      检查最新的版本
+    */
     $scope.initProfile = () => {
       const url = `https://api.github.com/repos/listen1/listen1_chrome_extension/releases/latest`;
       axios.get(url).then((response) => {
@@ -79,9 +84,15 @@ angular.module('listenone').controller('ProfileController', [
       $scope.getProxyConfig();
     };
 
+
+    /* 
+
+    */
     if (isElectron()) {
+      // Require只能在类Node环境中使用
       const { ipcRenderer } = require('electron');
 
+      // 事件监听
       ipcRenderer.on('proxyConfig', (event, config) => {
         // parse config
         if (config.mode === 'system' || config.mode === 'direct') {
@@ -106,6 +117,13 @@ angular.module('listenone').controller('ProfileController', [
         }
       });
     }
+
+
+    /**
+     * 设定国际化语言
+     *
+     * @param {*} langKey
+     */
     $scope.setLang = (langKey) => {
       // You can change the language during runtime
       i18next.changeLanguage(langKey).then((t) => {
@@ -126,15 +144,25 @@ angular.module('listenone').controller('ProfileController', [
         localStorage.setObject('language', langKey);
       });
     };
+
+    // 这种脚本的划分方式就是过程式的,所以才会出现又有定义又有执行
     $scope.setLang(defaultLang);
 
     let defaultTheme = 'white';
     if (localStorage.getObject('theme') !== null) {
       defaultTheme = localStorage.getObject('theme');
     }
+
+    /**
+     * 更换主题 
+     *
+     * @param {string} theme类型
+     */
     $scope.setTheme = (theme) => {
+      // 全局状态设定
       $scope.theme = theme;
 
+      // 准备所有主题资源 CSS file 在这里注册可以用的主题颜色
       const themeFiles = {
         white: ['css/iparanoid.css', 'css/common.css'],
         black: ['css/origin.css', 'css/common.css'],
@@ -142,6 +170,7 @@ angular.module('listenone').controller('ProfileController', [
         black2: ['css/origin2.css', 'css/common2.css'],
       };
       // You can change the language during runtime
+      // 检查传递的参数是否有对应的注意注册
       if (themeFiles[theme] !== undefined) {
         const keys = ['theme-css', 'common-css'];
         for (let i = 0; i < themeFiles[theme].length; i += 1) {
@@ -153,6 +182,8 @@ angular.module('listenone').controller('ProfileController', [
         document.getElementById('feather-container').innerHTML = res.data;
       });
     };
+
     $scope.setTheme(defaultTheme);
+
   },
 ]);

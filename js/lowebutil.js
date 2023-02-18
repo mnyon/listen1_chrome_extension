@@ -6,11 +6,15 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-unused-vars */
 
-/* 
-  这个函数的目的是从给定的URL中根据给定的参数名称检索出参数的值。它将在URL中查找并返回指定参数的值。如果URL中没有找到给定名称的参数，则返回null。
-*/
-function getParameterByName(name, url) {
-  // 
+
+/**
+ * 在URL中查找并返回指定参数的值。如果URL中没有找到给定名称的参数，则返回null。
+ *
+ * @param {string} name - 参数名称
+ * @param {string} url   - 目标url
+ * @return {string} 参数 
+ */
+function getParameterByName(name, url) {  
   if (!url) url = window.location.href;
   name = name.replace(/[\[\]]/g, '\\$&'); // eslint-disable-line no-useless-escape
   const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`);
@@ -25,13 +29,24 @@ function isElectron() {
   return window && window.process && window.process.type;
 }
 
+
+/**
+ *
+ *
+ * @param {string} cookieRequest
+ * @param {function} callback
+ * @return {*} 
+ */
 function cookieGet(cookieRequest, callback) {
+
   if (!isElectron()) {
     return chrome.cookies.get(cookieRequest, (cookie) => {
       callback(cookie);
     });
   }
+
   const remote = require('electron').remote; // eslint-disable-line
+
   remote.session.defaultSession.cookies
     .get(cookieRequest)
     .then((cookieArray) => {

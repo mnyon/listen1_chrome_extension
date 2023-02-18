@@ -1,5 +1,9 @@
 /* eslint-disable no-unused-vars */
 /* global getParameterByName */
+
+/* 
+  
+*/
 const myplaylistFactory = () => {
   function array_move(arr, old_index, new_index) {
     // https://stackoverflow.com/questions/5306680/move-an-array-element-from-one-array-position-to-another
@@ -22,6 +26,9 @@ const myplaylistFactory = () => {
     }
     return key;
   }
+  /* 
+    TODO 为什么是一个Type?
+  */
   function show_myplaylist(playlist_type) {
     return {
       success(fn) {
@@ -72,7 +79,9 @@ const myplaylistFactory = () => {
       },
     };
   }
-
+  /* 
+    TODO GUID?
+  */
   function guid() {
     function s4() {
       return Math.floor((1 + Math.random()) * 0x10000)
@@ -82,6 +91,9 @@ const myplaylistFactory = () => {
     return `${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
   }
 
+  /* 
+    TODO 参数分析
+  */
   function insert_myplaylist_to_myplaylists(
     playlist_type,
     playlist_id,

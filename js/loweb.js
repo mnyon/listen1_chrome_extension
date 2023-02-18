@@ -158,14 +158,23 @@ const MediaService = {
   getLoginProviders() {
     return PROVIDERS.filter((i) => !i.hidden && i.support_login);
   },
-  /* 
-    搜索服务配合搜索的内容进行搜索请求的准备
-  */
+
+  /**
+   * 搜索服务配合搜索的内容进行搜索请求的准备,这里的搜索是针对UIplayer的
+   *
+   * @param {string} 目标平台的API source
+   * @param {string} 搜索的内容 options
+   * @return {object}  
+   */
   search(source, options) {
+    // 格式化搜索的内容
     const url = `/search?${queryStringify(options)}`;
+    // 从所有的源中获取搜索信息
     if (source === 'allmusic') {
       // search all platform and merge result
+      // 获取每个Provider的搜索结果 这种连续的箭头函数是特殊的函数式编程 柯里化
       const callbackArray = getAllSearchProviders().map((p) => (fn) => {
+        // 匿名函数Callback参数中传递进去另一个匿名函数
         p.search(url).success((r) => {
           fn(null, r);
         });
@@ -179,9 +188,11 @@ const MediaService = {
               total: 1000,
               type: platformResultArray[0].type,
             };
+            // 
             const maxLength = Math.max(
               ...platformResultArray.map((elem) => elem.result.length)
             );
+            // 
             for (let i = 0; i < maxLength; i += 1) {
               platformResultArray.forEach((elem) => {
                 if (i < elem.result.length) {
@@ -189,13 +200,17 @@ const MediaService = {
                 }
               });
             }
+            // 
             return fn(result);
           }),
       };
     }
+
+    // 只从特定的源中获取信息
     const provider = getProviderByName(source);
     /* 
       一个provider必须提供搜索功能,但是fm电台是没有搜索的.
+      返回的结果是执行这个函数之后返回了一个Object
     */
     return provider.search(url);
   },
@@ -259,17 +274,26 @@ const MediaService = {
       hit = playlistCache.get(listId);
     }
 
+    /* 
+      这也是一个函数出口 但是不清楚什么命中了
+    */
     if (hit) {
       return {
         success: (fn) => fn(hit),
       };
     }
+    /* 
+      这是一种相当特殊的意图,返回对象后因为带有一个方法
+      这个success接受一个函数为参数
+      不仅如此，这个函数还自己接受一个Event的参数 但是这里完全看不出来
+    */
     return {
       success: (fn) =>
         provider.get_playlist(url).success((playlist) => {
           if (provider !== myplaylist && provider !== localmusic) {
             playlistCache.set(listId, playlist);
           }
+          /* 这个地方才能真正发现传递的data是什么，从外部是完全看不出来的 */
           fn(playlist);
         }),
     };

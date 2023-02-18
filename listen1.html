@@ -76,7 +76,7 @@
 
 <body>
   <div ng-controller="ProfileController" ng-init="initProfile()">
-    <!-- 切换皮肤的设置 -->
+    <!-- 皮肤A 如果这个变量的值是 "white" 或 "black"，那么就会渲染出 body 这个 div。 -->
     <div class="body" ng-if="theme==='white' || theme==='black' ">
       <div id="feather-container" style="visibility: hidden; position: absolute; width: 0px; height: 0px"></div>
       <div ng-controller="PlayController as playCtrl" ng-init="loadLocalSettings()">
@@ -119,17 +119,22 @@
                       </div>
                     </div>
                     <!-- edit playlist dialog-->
+                    <!-- 编辑播放列表的弹窗UI部分 -->
                     <div class="dialog-editplaylist" ng-show="dialog_type==3">
+                      <!-- 所有的DialogUI被一个通用的Event来触发State -->
                       <div class="form-group">
                         <label>{{_PLAYLIST_TITLE}}</label>
+                        <!-- 通过特定的data会直接的被处理到一个全局变量,Angular会处理这部分的 -->
                         <input class="form-control" type="text" placeholder="{{_INPUT_PLAYLIST_TITLE}}"
                           ng-model="dialog_playlist_title" />
                       </div>
+                      <!-- 封面URL -->
                       <div class="form-group">
                         <label>{{_PLAYLIST_COVER_IMAGE_URL}}</label>
                         <input class="form-control" type="text" placeholder="{{_INPUT_PLAYLIST_COVER_IMAGE_URL}}"
                           ng-model="dialog_cover_img_url" />
                       </div>
+                      <!-- 确认和取消操作 -->
                       <div class="buttons">
                         <button class="btn btn-primary confirm-button" ng-click="editMyPlaylist(list_id)">
                           {{_CONFIRM}}
@@ -138,12 +143,14 @@
                           {{_CANCEL}}
                         </button>
                       </div>
+                      <!-- 删除歌单 -->
                       <div class="dialog-footer">
                         <button class="btn btn-danger remove-button" ng-click="removeMyPlaylist(list_id)">
                           {{_REMOVE_PLAYLIST}}
                         </button>
                       </div>
                     </div>
+                    <!-- 连接到LastFMUI -->
                     <div class="dialog-connect-lastfm" ng-show="dialog_type==4">
                       <p>{{_OPENING_LASTFM_PAGE}}</p>
                       <p>{{_CONFIRM_NOTICE_LASTFM}}</p>
@@ -404,12 +411,13 @@
                         </svg>
                       </div>
                     </div>
-                    <!-- Content View 不同的内容页面 -->
+                    <!-- Content View 不同的内容页面  -->
                     <div class="browser flex-scroll-wrapper" infinite-scroll="scrolling()"
                       content-selector="'#playlist-content'">
-                      <!-- hot playlist window 热播音乐页面 -->
+                      <!-- 平台聚合播放页面 这可是个大功能 -->
                       <div class="page page-hot-playlist" ng-show="current_tag==2 && is_window_hidden==1"
                         ng-controller="PlayListController" ng-init="loadPlaylist();">
+                        <!-- 注册所有的听音乐的来源 例如QQ或者网易云 -->
                         <div class="source-list" ng-show="is_window_hidden==1">
                           <div ng-repeat-start="source in ::sourceList" class="source-button"
                             ng-class="{'active':tab === source.name}" ng-click="changeTab(source.name)">
@@ -417,18 +425,20 @@
                           </div>
                           <div ng-repeat-end ng-if="!$last" class="splitter"></div>
                         </div>
-
+                        <!-- 所有的音乐的类型 例如 爵士 古典 -->
                         <div class="playlist-filter">
                           <div class="l1-button filter-item" ng-repeat="filter in playlistFilters[tab] || []"
                             ng-click="changeFilter(filter.id)" ng-class="{'active':filter.id === currentFilterId}">
                             {{filter.name}}
                           </div>
+                          <!-- 在所有的音乐类型中选择更多 -->
                           <div class="l1-button filter-item"
                             ng-show="playlistFilters[tab] && playlistFilters[tab].length > 0"
                             ng-click="toggleMorePlaylists()">
                             更多...
                           </div>
                         </div>
+                        <!--  -->
                         <div class="all-playlist-filter" ng-show="showMore">
                           <div ng-repeat="category in allPlaylistFilters[tab] || []" class="category">
                             <div class="category-title">
@@ -442,6 +452,7 @@
                             </div>
                           </div>
                         </div>
+                        <!--  -->
                         <div class="site-wrapper-innerd" id="hotplaylist">
                           <div class="cover-container" id="playlist-content">
                             <ul class="playlist-covers">
@@ -465,10 +476,10 @@
                           </div>
                         </div>
                       </div>
-                      <!-- my platform window -->
+                      <!-- 似乎是最左侧的歌单的功能 一共有三种歌单类型 -->
                       <div class="page page-hot-playlist" ng-show="current_tag==6 && is_window_hidden==1"
                         ng-controller="PlatformController">
-                        <!-- 各个平台的显示名字 横向的内容 -->
+                        <!-- 自己收藏的歌单  -->
                         <div class="source-list" ng-show="is_window_hidden==1">
                           <div ng-repeat-start="source in ::platformSourceList" class="source-button"
                             ng-class="{'active':tab === source.name}" ng-click="changeTab(source.name)">
@@ -476,7 +487,7 @@
                           </div>
                           <div ng-repeat-end ng-if="!$last" class="splitter"></div>
                         </div>
-                        <!-- 各个源的推荐歌单部分 -->
+                        <!-- 各个源的歌单部分UI 也就是说 不管是那种 它的UI和数据都一样 -->
                         <div class="site-wrapper-innerd" id="hotplaylist">
                           <div class="cover-container" id="playlist-content">
                             <ul class="playlist-covers">
@@ -498,7 +509,7 @@
                         </div>
                       </div>
 
-                      <!-- content page: 快速搜索 -->
+                      <!-- 在搜索框执行搜索后的UI  -->
                       <div class="page" ng-show="current_tag==3 && is_window_hidden==1">
                         <div class="site-wrapper-innerd">
                           <div class="cover-container">
@@ -612,14 +623,16 @@
                           </div>
                         </div>
                       </div>
-                      <!-- content page: 设置 -->
+                      <!-- 设置PageUI -->
                       <div class="page" ng-show="current_tag==4 && is_window_hidden==1"
                         ng-init="lastfm.updateStatus(); updateGithubStatus();">
                         <div class="site-wrapper-innerd">
                           <div class="cover-container">
+                            <!-- 语言设定 -->
                             <div class="settings-title">
                               <span>{{_LANGUAGE}}</span>
                             </div>
+                            <!-- 国际化选项 -->
                             <div class="settings-content">
                               <div>
                                 <button class="language-button" ng-click="setLang('zh-CN')">
@@ -639,9 +652,11 @@
                                 </button>
                               </div>
                             </div>
+                            <!-- 主题 -->
                             <div class="settings-title">
                               <span>{{_THEME}}</span>
                             </div>
+                            <!-- 具体的主题选择 -->
                             <div class="settings-content">
                               <div>
                                 <button class="theme-button" ng-click="setTheme('white')">
@@ -658,6 +673,7 @@
                                 </button>
                               </div>
                             </div>
+                            <!-- 是否自动切换源 -->
                             <div class="settings-title">
                               <span>{{_AUTO_CHOOSE_SOURCE}}</span>
                             </div>
@@ -690,18 +706,24 @@
                                 </div>
                               </div>
                             </div>
+
                             <div ng-if="isChrome" class="settings-title">
                               <span>{{_CLOSE_TAB_ACTION}}({{_VALID_AFTER_RESTART}})</span>
                             </div>
+                            <!-- 选项 -->
                             <div ng-if="isChrome" class="settings-content">
                               <div class="shortcut">
+                                <!--  -->
                                 <svg class="feather" ng-show="!enableStopWhenClose" ng-click="setStopWhenClose(true)">
                                   <use href="#square"></use>
                                 </svg>
                                 <svg class="feather" ng-show="enableStopWhenClose" ng-click="setStopWhenClose(false)">
                                   <use href="#check-square"></use>
                                 </svg>
+                                <!-- 退出应用 -->
                                 <span style="margin-right: 20px">{{_QUIT_APPLICATION}}</span>
+
+                                <!-- 最小化到后台 -->
                                 <svg class="feather" ng-show="enableStopWhenClose" ng-click="setStopWhenClose(false)">
                                   <use href="#square"></use>
                                 </svg>
@@ -711,10 +733,12 @@
                                 <span> {{_MINIMIZE_TO_BACKGROUND}}</span>
                               </div>
                             </div>
+                            <!-- 正在播放显示 -->
                             <div class="settings-title">
                               <span>{{_NOWPLAYING_DISPLAY}}</span>
                             </div>
                             <div class="settings-content">
+                              <!--  -->
                               <div class="shortcut">
                                 <svg class="feather" ng-show="!enableNowplayingCoverBackground"
                                   ng-click="setNowplayingCoverBackground(true)">
@@ -726,6 +750,7 @@
                                 </svg>
                                 {{_NOWPLAYING_COVER_BACKGROUND_NOTICE}}
                               </div>
+                              <!--  -->
                               <div class="shortcut">
                                 <svg class="feather" ng-show="!enableNowplayingBitrate"
                                   ng-click="setNowplayingBitrate(true)">
@@ -737,6 +762,7 @@
                                 </svg>
                                 {{_NOWPLAYING_BITRATE_NOTICE}}
                               </div>
+                              <!--  -->
                               <div class="shortcut">
                                 <svg class="feather" ng-show="!enableNowplayingPlatform"
                                   ng-click="setNowplayingPlatform(true)">
@@ -749,6 +775,7 @@
                                 {{_NOWPLAYING_PLATFORM_NOTICE}}
                               </div>
                             </div>
+                            <!-- 歌词显示 -->
                             <div class="settings-title">
                               <span>{{_LYRIC_DISPLAY}}</span>
                             </div>
@@ -788,15 +815,19 @@
                                   ng-show="enableLyricFloatingWindowTranslation"></span>{{_SHOW_DESKTOP_LYRIC_TRANSLATION}}
                               </div>
                             </div>
+                            <!-- 备份功能 -->
                             <div class="settings-title">
                               <span>{{_BACKUP_PLAYLIST}}</span>
                             </div>
                             <div class="settings-content">
+                              <!-- 导出的内容说明 -->
                               <p>{{_BACKUP_WARNING}}</p>
                               <div>
+                                <!-- 导出到本地文件 -->
                                 <button class="btn btn-primary confirm-button" ng-click="backupMySettings()">
                                   {{_EXPORT_TO_LOCAL_FILE}}
                                 </button>
+                                <!-- 导出到GithubGist -->
                                 <button class="btn btn-primary confirm-button" ng-show="githubStatus == 2"
                                   ng-click="showDialog(8)">
                                   {{_EXPORT_TO_GITHUB_GIST}}
@@ -1020,7 +1051,7 @@
                           </div>
                         </div>
                       </div>
-                      <!-- content page: 登录 -->
+                      <!-- 登录 -->
                       <div class="page" ng-show="current_tag==5 && is_window_hidden==1">
                         <div class="login">
                           <div ng-repeat="source in loginSourceList">
@@ -1057,7 +1088,6 @@
                           </div>
                         </div>
                       </div>
-
                       <!-- track list window 歌单展示列表 -->
                       <div class="page">
                         <div class="playlist-detail" ng-show="is_window_hidden!=1 && window_type=='list'">
@@ -1133,8 +1163,9 @@
                               </div>
                             </div>
                           </div>
-
+                          <!-- 打开播放列表后具体的一个歌曲列表 -->
                           <ul class="detail-songlist">
+                            <!-- 歌单搜索功能 -->
                             <div class="playlist-search">
                               <svg class="feather playlist-search-icon">
                                 <use href="#search"></use>
@@ -1146,20 +1177,33 @@
                               <input class="playlist-search-input" type="text" ng-model="playlistFilter.key"
                                 placeholder="{{_SEARCH_PLAYLIST}}" />
                             </div>
+                            <!-- 歌单的歌曲数量 -->
                             <li class="head">
+                              <!-- TODO -->
+                              <div class="sequence">
+                                <!-- 这里不需要写东西 -->
+                              </div>
                               <div class="title">
                                 <a>{{_SONGS + '(' + songs.length + ')'}}</a>
                               </div>
+                              <!-- 歌手 -->
                               <div class="artist"><a>{{_ARTISTS}}</a></div>
+                              <!-- 专辑 -->
                               <div class="album"><a>{{_ALBUMS}}</a></div>
+                              <!-- 工具栏 -->
                               <div class="tools">{{_OPERATION}}</div>
                             </li>
+                            <!-- 每一首歌 -->
                             <li ng-repeat="song in songs | filter: fieldFilter track by $index" ng-class-odd="'odd'"
                               ng-class-even="'even'" ng-mouseenter="options=true" ng-mouseleave="options=false"
                               ng-dblclick="addAndPlay(song)" draggable="true" drag-drop-zone drag-zone-object="song"
                               drag-zone-title="song.title" sortable="is_mine || is_local"
                               drag-zone-type="'application/listen1-song'"
                               drop-zone-ondrop="onPlaylistSongDrop(list_id, song, arg1, arg2, arg3)">
+                              <!-- TODO -->
+                              <div class="sequence">
+                                <a>{{$index}}</a>
+                              </div>
                               <div class="title">
                                 <!-- <a class="disabled" ng-if="song.disabled" ng-click="copyrightNotice()">{{ song.title }}</a> -->
                                 <a add-and-play="song">{{ song.title }}</a>
@@ -1182,8 +1226,10 @@
                                   ng-show="options && !is_local"><span class="icon li-link"></span></a>
                               </div>
                             </li>
+                            <!-- 歌曲列表 End -->
                           </ul>
                         </div>
+
                         <!-- now playing window-->
                         <div class="songdetail-wrapper"
                           ng-class="{slidedown: window_type!=='track', coverbg: enableNowplayingCoverBackground}">
@@ -1409,7 +1455,7 @@
         </div>
       </div>
     </div>
-    <!-- 切换皮肤的设置 -->
+    <!-- 皮肤B -->
     <div class="body" ng-if="theme==='white2' || theme==='black2' ">
       <div id="feather-container" style="visibility: hidden; position: absolute; width: 0px; height: 0px"></div>
       <div ng-controller="PlayController as playCtrl" ng-init="loadLocalSettings()">

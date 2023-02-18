@@ -13,6 +13,9 @@ const platformSourceList = [
     displayId: '_RECOMMEND_PLAYLIST',
   },
 ];
+/* 
+  某个功能的Event事件的部分
+*/
 angular.module('listenone').controller('PlatformController', [
   '$scope',
   ($scope) => {
