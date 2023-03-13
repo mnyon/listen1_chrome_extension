@@ -4,12 +4,16 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-param-reassign */
 /* global angular notyf i18next MediaService l1Player hotkeys isElectron require GithubClient lastfm */
-// control main view of page, it can be called any place
+// control main view of page, it can be called any place 
+/* 
+  虽然名称叫做Navigation导航 但是实际上他就是整个App的UI控制事件集中处理的地方
+*/
 angular.module('listenone').controller('NavigationController', [
   '$scope',
   '$timeout',
   '$rootScope',
   ($scope, $timeout, $rootScope) => {
+    // 从这里开始就是全局的变量了 
     $rootScope.page_title = { title: 'Listen 1', artist: '', status: '' }; // eslint-disable-line no-param-reassign
     $scope.window_url_stack = [];
     $scope.window_poped_url_stack = [];
@@ -30,7 +34,8 @@ angular.module('listenone').controller('NavigationController', [
     $scope.lastfm = lastfm;
 
     $scope.isOpenSidebar = true;
-
+    
+    /* 似乎是某种特殊的Event侦听部分 */
     $scope.$on('isdoubanlogin:update', (event, data) => {
       $scope.isDoubanLogin = data;
     });
@@ -95,6 +100,9 @@ angular.module('listenone').controller('NavigationController', [
         return;
       }
       const listId = new URL(url, window.location).searchParams.get('list_id');
+      /* 
+        此处的Data是从什么地方传递进来的？
+      */
       MediaService.getPlaylist(listId).success((data) => {
         $scope.songs = data.tracks;
         $scope.list_id = data.info.id;
@@ -195,12 +203,19 @@ angular.module('listenone').controller('NavigationController', [
       $scope.window_poped_url_stack = [];
 
       const listId = new URL(url, window.location).searchParams.get('list_id');
+
+      // 这个匿名函数虽然是匿名的,但是实际上它是一个非常重要的业务函数
+      // 非常有意思，这个地方的匿名函数的参数传递加入的data是从success中获得的
       MediaService.getPlaylist(listId, useCache).success((data) => {
+        // 这里的data就是playlist
         if (data.status === '0') {
+          // ?? 9 是什么状态？
           notyf.info(data.reason);
           $scope.popWindow();
           return;
         }
+
+        // 更新当前正在播放的歌曲的内容
         $scope.songs = data.tracks;
         $scope.cover_img_url = data.info.cover_img_url;
         $scope.playlist_title = data.info.title;
@@ -226,6 +241,9 @@ angular.module('listenone').controller('NavigationController', [
       });
     };
 
+    /* 
+      某种渲染的UI交互 在弹出新的功能UI时提前的传递Dialog内容
+    */
     $scope.showDialog = (dialog_type, data) => {
       $scope.is_dialog_hidden = 0;
       $scope.dialog_data = data;
@@ -234,11 +252,17 @@ angular.module('listenone').controller('NavigationController', [
       const left = window.innerWidth / 2 - dialogWidth / 2;
       const top = window.innerHeight / 2 - dialogHeight / 2;
 
+      /* 
+        从这里开始开始明显的对全局的某种设置进行改变了
+      */
       $scope.myStyle = {
         left: `${left}px`,
         top: `${top}px`,
       };
       $scope.dialog_type = dialog_type;
+      /* 
+        似乎是某种根据特定的注册信息传递的内容 似乎是英文
+      */
       if (dialog_type === 0) {
         $scope.dialog_title = i18next.t('_ADD_TO_PLAYLIST');
         $scope.dialog_song = data;
@@ -252,14 +276,23 @@ angular.module('listenone').controller('NavigationController', [
       //   $scope.dialog_type = 2;
       // }
 
+      /* 
+        编辑播放列表
+      */
       if (dialog_type === 3) {
         $scope.dialog_title = i18next.t('_EDIT_PLAYLIST');
+        /* 播放列表的Cover的URL */
         $scope.dialog_cover_img_url = data.cover_img_url;
+        // 歌单的名称
         $scope.dialog_playlist_title = data.playlist_title;
       }
+      /* 
+        登录到LastFM
+      */
       if (dialog_type === 4) {
         $scope.dialog_title = i18next.t('_CONNECT_TO_LASTFM');
       }
+      /*  */
       if (dialog_type === 5) {
         $scope.dialog_title = i18next.t('_OPEN_PLAYLIST');
       }
@@ -300,7 +333,7 @@ angular.module('listenone').controller('NavigationController', [
       if (dialog_type === 12) {
         $scope.dialog_title = i18next.t('_PROXY_CONFIG');
       }
-    };
+    };// showDialogEND
 
     $scope.onSidebarPlaylistDrop = (
       playlistType,
@@ -334,17 +367,24 @@ angular.module('listenone').controller('NavigationController', [
     };
     $scope.playlistFilter = { key: '' };
 
+    /* 
+      清空正在搜索的内容
+    */
     $scope.clearFilter = () => {
       $scope.playlistFilter.key = '';
     };
 
     /* 
-    
+      Event 搜索播放列表中的指定歌曲
     */
     $scope.fieldFilter = (song) => {
+      // 当前直接就是空的播放列表,所以没必要过滤
       if ($scope.playlistFilter.key === '') {
         return true;
       }
+      /* 
+        分别从名称 艺术家 专辑名 进行筛选
+      */
       return (
         song.title.includes($scope.playlistFilter.key) ||
         song.artist.includes($scope.playlistFilter.key) ||
@@ -411,6 +451,7 @@ angular.module('listenone').controller('NavigationController', [
       $scope.dialog_type = option;
     };
 
+    // 这本身就是一个事件函数,没有返回值,但是有副作用
     $scope.createAndAddPlaylist = () => {
       MediaService.createMyPlaylist(
         $scope.newlist_title,
@@ -499,9 +540,11 @@ angular.module('listenone').controller('NavigationController', [
       });
     };
 
+    /* 删除播放列表 */
     $scope.removeMyPlaylist = (list_id) => {
       MediaService.removeMyPlaylist(list_id, 'my').success(() => {
         $rootScope.$broadcast('myplaylist:update');
+        // 因为这里的Dialog的设计非常有意思 任何取消都需要注意手动改变这个UI显示
         $scope.closeDialog();
         $scope.closeWindow();
         notyf.success(i18next.t('_REMOVE_PLAYLIST_SUCCESS'));
@@ -667,6 +710,7 @@ angular.module('listenone').controller('NavigationController', [
       });
     };
 
+    // 增加本地歌曲 非常神奇,这似乎是一个Electricon版本的功能
     $scope.addLocalMusic = (list_id) => {
       if (isElectron()) {
         const { remote } = require('electron');

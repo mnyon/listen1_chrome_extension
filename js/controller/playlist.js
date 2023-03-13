@@ -1,6 +1,9 @@
 /* eslint-disable no-unused-vars */
 /* global angular MediaService sourceList */
 
+/* 
+  播放列表应该就是当前的播放清单 而不是 歌单
+*/
 angular.module('listenone').controller('PlayListController', [
   '$scope',
   '$timeout',

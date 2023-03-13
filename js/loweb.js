@@ -274,17 +274,26 @@ const MediaService = {
       hit = playlistCache.get(listId);
     }
 
+    /* 
+      这也是一个函数出口 但是不清楚什么命中了
+    */
     if (hit) {
       return {
         success: (fn) => fn(hit),
       };
     }
+    /* 
+      这是一种相当特殊的意图,返回对象后因为带有一个方法
+      这个success接受一个函数为参数
+      不仅如此，这个函数还自己接受一个Event的参数 但是这里完全看不出来
+    */
     return {
       success: (fn) =>
         provider.get_playlist(url).success((playlist) => {
           if (provider !== myplaylist && provider !== localmusic) {
             playlistCache.set(listId, playlist);
           }
+          /* 这个地方才能真正发现传递的data是什么，从外部是完全看不出来的 */
           fn(playlist);
         }),
     };
