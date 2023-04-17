@@ -1,8 +1,29 @@
 /* eslint-disable no-unused-vars */
 /* global GithubClient */
 
+const urls = [
+  '*://*.music.163.com/*',
+  '*://music.163.com/*',
+  '*://*.xiami.com/*',
+  '*://i.y.qq.com/*',
+  '*://c.y.qq.com/*',
+  '*://*.kugou.com/*',
+  '*://*.kuwo.cn/*',
+  '*://*.bilibili.com/*',
+  '*://*.bilivideo.com/*',
+  '*://*.bilivideo.cn/*',
+  '*://*.migu.cn/*',
+  '*://*.githubusercontent.com/*',
+];
+
+const MOBILE_UA =
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
+
 /* 
   点击插件的图标之后的行为
+  1. 打开 listen1.html 页面
+  2. 向 listen1.html 页面发送消息，告诉它当前页面的歌曲信息
+  3. 监听 listen1.html 页面的消息，如果是播放歌曲的消息，则向当前页面发送消息，播放歌曲
 */
 chrome.browserAction.onClicked.addListener((tab) => {
   chrome.tabs.create(
@@ -14,9 +35,26 @@ chrome.browserAction.onClicked.addListener((tab) => {
     }
   );
 });
-const MOBILE_UA =
-  'Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
 
+/**
+ * Get tokens.
+ * Chrome扩展程序API中的一段，它从网页获取代码，并将其发送给Github客户端来处理。
+ * 使用chrome.runtime.onMessage.addListener API来监听消息，并使用request变量来获取消息的信息。
+ * 如果消息的类型为“code”，则调用GithubClient.github.handleCallback()方法来处理它，然后使用sendResponse()方法发送响应。
+ */
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type !== 'code') {
+    return;
+  }
+
+  GithubClient.github.handleCallback(request.code);
+  sendResponse();
+});
+
+
+/* 
+  更改浏览器HTTP请求头的referer字段
+*/
 function hack_referer_header(details) {
   const replace_referer = true;
   let replace_origin = true;
@@ -170,49 +208,32 @@ function hack_referer_header(details) {
   return blockingResponse;
 }
 
-const urls = [
-  '*://*.music.163.com/*',
-  '*://music.163.com/*',
-  '*://*.xiami.com/*',
-  '*://i.y.qq.com/*',
-  '*://c.y.qq.com/*',
-  '*://*.kugou.com/*',
-  '*://*.kuwo.cn/*',
-  '*://*.bilibili.com/*',
-  '*://*.bilivideo.com/*',
-  '*://*.bilivideo.cn/*',
-  '*://*.migu.cn/*',
-  '*://*.githubusercontent.com/*',
-];
-
-try {
-  chrome.webRequest.onBeforeSendHeaders.addListener(
-    hack_referer_header,
-    {
-      urls,
-    },
-    ['requestHeaders', 'blocking', 'extraHeaders']
-  );
-} catch (err) {
-  // before chrome v72, extraHeader is not supported
-  chrome.webRequest.onBeforeSendHeaders.addListener(
-    hack_referer_header,
-    {
-      urls,
-    },
-    ['requestHeaders', 'blocking']
-  );
+/* 
+  添加一个Web请求的监听器
+  如果chrome版本低于72（以上版本支持extraHeaders），则使用不支持extraHeaders参数的传统方法来添加监听器。
+*/
+function add_web_request_listener() {
+  try {
+    chrome.webRequest.onBeforeSendHeaders.addListener(
+      hack_referer_header,
+      {
+        urls,
+      },
+      ['requestHeaders', 'blocking', 'extraHeaders']
+    );
+  } catch (err) {
+    // before chrome v72, extraHeader is not supported
+    chrome.webRequest.onBeforeSendHeaders.addListener(
+      hack_referer_header,
+      {
+        urls,
+      },
+      ['requestHeaders', 'blocking']
+    );
+  }
 }
 
-/**
- * Get tokens.
- */
+add_web_request_listener();
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type !== 'code') {
-    return;
-  }
 
-  GithubClient.github.handleCallback(request.code);
-  sendResponse();
-});
+

@@ -125,12 +125,11 @@ function backgroundPlayerSendMessage(message) {
 }
 
 /* 
-  这里传递的message就是一首track 但是核心是如果播放核心已经暂停了,那么UI部分应该跟着改变
+  这里传递的message就是一首trackObject 
+  但是核心是如果播放核心已经暂停了,那么UI部分应该跟着改变
+  这相当于一个UI的状态同步,其中的message实际上就是一个事件
 */
 function playerSendMessage(mode, message) {
-  /* 
-    
-  */
   if (mode === 'front') {
     frontPlayerSendMessage(message);
   }

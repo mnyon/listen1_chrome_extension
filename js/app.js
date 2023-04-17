@@ -179,6 +179,9 @@ const main = () => {
     },
   }));
 
+  /* 
+    这个指令似乎是在手动的调整页面的高度
+  */
   app.directive('resize', ($window) => (scope, element) => {
     const w = angular.element($window);
     const changeHeight = () => {
@@ -210,6 +213,9 @@ const main = () => {
     }),
   ]);
 
+  /* 
+    添加一首歌,但是暂时不播放
+  */
   app.directive('addWithoutPlay', [
     () => ({
       restrict: 'EA',
@@ -245,6 +251,9 @@ const main = () => {
     }),
   ]);
 
+  /* 
+    这个是用来实现窗口控制的一个指令
+  */
   app.directive('windowControl', [
     '$window',
     ($window) => ({
@@ -263,6 +272,9 @@ const main = () => {
     }),
   ]);
 
+  /* 
+    这个是用来实现无限滚动的一个指令
+  */
   app.directive('infiniteScroll', [
     '$window',
     '$rootScope',
